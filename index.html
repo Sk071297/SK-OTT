@@ -72,8 +72,7 @@
         <h2>Admin – Add / Edit Library</h2>
         <p class="admin-hint">
           1) Upload video to <strong>Google Drive</strong> → get share link<br />
-          2) Use this form to save movies in Supabase database<br />
-          3) JSON below is just backup/export (optional).
+          2) Use this form to save movies in Supabase database.
         </p>
 
         <!-- Add movie form -->
@@ -168,7 +167,7 @@
               readonly
             />
             <small class="hint">
-              This is the URL SK uses to play the video. It updates automatically from the Drive link above.
+              This is the URL SK uses to play the video. It updates automatically.
             </small>
           </div>
 
@@ -183,16 +182,12 @@
           <p class="admin-hint">
             Click <strong>Delete</strong> to remove an entry from Supabase.
           </p>
-          <div id="admin-movie-list" class="admin-movie-list">
-            <!-- Filled by JS -->
-          </div>
+          <div id="admin-movie-list" class="admin-movie-list"></div>
         </div>
 
-        <!-- JSON previews -->
+        <!-- JSON preview (optional – you can delete this whole block if you hate it) -->
         <div class="admin-output-block">
-          <p>
-            JSON entry for the last movie you added (for backup/export):
-          </p>
+          <p>JSON entry for the last movie you added (for backup/export):</p>
           <textarea
             id="admin-output"
             rows="6"
@@ -202,9 +197,7 @@
         </div>
 
         <div class="admin-output-block">
-          <p>
-            Full library JSON (current database snapshot):
-          </p>
+          <p>Full library JSON (current database snapshot):</p>
           <textarea
             id="admin-output-full"
             rows="10"
@@ -215,9 +208,7 @@
       </section>
 
       <!-- Movie grid -->
-      <section id="movie-list" class="movie-grid">
-        <!-- Cards rendered by JS -->
-      </section>
+      <section id="movie-list" class="movie-grid"></section>
     </main>
   </div>
 
@@ -250,21 +241,20 @@
     </div>
   </div>
 
-  <!-- Supabase client (module) -->
+  <!-- Supabase client FIRST -->
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-    // ⬇️ REPLACE with your real project URL + anon key from Supabase
+    // ⬇️ REPLACE THESE TWO LINES WITH REAL VALUES FROM Supabase Settings → API
     const supabaseUrl = "https://xneiwdmxyakqoalmckug.supabase.co";
     const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhuZWl3ZG14eWFrcW9hbG1ja3VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MTkwNTIsImV4cCI6MjA4MDA5NTA1Mn0.iIjVhdC6dGsPuYe-DjhOyOO0lzUD9IuyEj3I89CfFJ4";
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-    // Make available to script.js
+    // expose to script.js
     window.supabase = supabase;
   </script>
 
-  <!-- Main logic -->
-  <script src="script.js"></script>
+  <!-- Then your main JS (defer so it runs after parsing) -->
+  <script src="script.js" defer></script>
 </body>
 </html>

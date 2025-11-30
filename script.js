@@ -6,8 +6,8 @@ let movies = [];
 let filteredMovies = [];
 let isAdmin = false;
 
-// Supabase client from index.html
-const supabase = window.supabase;
+// will be assigned after DOMContentLoaded
+let supabaseClient = null;
 
 // DOM elements
 const lockScreen = document.getElementById("lock-screen");
@@ -73,7 +73,6 @@ function toDriveVideoUrl(raw) {
     fileId = openMatch[1];
   }
 
-  // If user pasted only file ID, keep that
   return `https://drive.google.com/uc?export=download&id=${fileId}`;
 }
 
@@ -114,14 +113,14 @@ accessCodeInput.addEventListener("keydown", (e) => {
 
 // ====== Load movies from Supabase ======
 async function loadMovies() {
-  if (!supabase) {
+  if (!supabaseClient) {
     movieList.innerHTML =
-      "<p>Supabase not initialized. Check config in index.html.</p>";
+      "<p>Supabase not initialized. Check URL and anon key in index.html.</p>";
     return;
   }
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("movies")
       .select("*")
       .order("created_at", { ascending: false });
@@ -251,14 +250,14 @@ function renderAdminMovieList() {
 }
 
 async function deleteMovie(id) {
-  if (!id) return;
+  if (!id || !supabaseClient) return;
   const ok = window.confirm(
     "Delete this movie from Supabase? This cannot be undone."
   );
   if (!ok) return;
 
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from("movies")
       .delete()
       .eq("id", id);
@@ -340,8 +339,7 @@ function openPlayer(movie) {
   playerVideo
     .play()
     .catch(() => {
-      // Autoplay blocked – not fatal
-      hideLoading();
+      hideLoading(); // autoplay blocked is not fatal
     });
 
   playerModal.classList.remove("hidden");
@@ -420,7 +418,12 @@ adminThumbInput.addEventListener("input", () => {
 
 // ====== Save movie to Supabase (with detailed error) ======
 async function saveMovieToSupabase(entry) {
-  const { data, error } = await supabase
+  if (!supabaseClient) {
+    alert("Supabase not initialized – check config.");
+    throw new Error("Supabase client missing");
+  }
+
+  const { data, error } = await supabaseClient
     .from("movies")
     .insert([
       {
@@ -493,7 +496,6 @@ adminForm.addEventListener("submit", async (e) => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   } catch (err) {
     console.error("Failed to save movie to Supabase:", err);
-    // alert is already shown inside saveMovieToSupabase
   }
 });
 
@@ -508,5 +510,12 @@ function updateAdminFullJson() {
 
 // ====== Init ======
 document.addEventListener("DOMContentLoaded", () => {
+  // grab Supabase client created in index.html
+  supabaseClient = window.supabase || null;
+
+  if (!supabaseClient) {
+    console.error("Supabase not found on window. Check index.html script order and config.");
+  }
+
   loadMovies();
 });
