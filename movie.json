@@ -16,14 +16,5 @@
     "description": "Holiday vlog with family.",
     "thumbnail": "https://via.placeholder.com/300x450?text=Movie+2",
     "source": "https://drive.google.com/file/d/FILE_ID_2/view?usp=sharing"
-  },
-  {
-    "id": "sk-movie-3",
-    "title": "Football Highlights",
-    "year": 2023,
-    "genre": "Sports",
-    "description": "Match highlights.",
-    "thumbnail": "https://via.placeholder.com/300x450?text=Movie+3",
-    "source": "https://drive.google.com/file/d/FILE_ID_3/view?usp=sharing"
   }
 ]

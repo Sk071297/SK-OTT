@@ -40,6 +40,7 @@ const adminDescInput = document.getElementById("admin-desc");
 const adminThumbInput = document.getElementById("admin-thumb");
 const thumbPreview = document.getElementById("thumb-preview");
 const adminSourceInput = document.getElementById("admin-source");
+const adminSourcePreview = document.getElementById("admin-source-preview");
 const adminOutput = document.getElementById("admin-output");
 const adminOutputFull = document.getElementById("admin-output-full");
 const adminMovieList = document.getElementById("admin-movie-list");
@@ -50,7 +51,7 @@ function toDriveVideoUrl(raw) {
 
   const trimmed = raw.trim();
 
-  // Already direct
+  // Already direct uc link
   if (trimmed.startsWith("https://drive.google.com/uc?")) {
     return trimmed;
   }
@@ -63,14 +64,27 @@ function toDriveVideoUrl(raw) {
     fileId = fileMatch[1];
   }
 
-  // ?id=FILE_ID
+  // open?id=FILE_ID
   const openMatch = trimmed.match(/[?&]id=([^&]+)/);
   if (openMatch && openMatch[1]) {
     fileId = openMatch[1];
   }
 
-  // If just ID, we use as is
+  // If user pasted only file ID, it stays as is
   return `https://drive.google.com/uc?export=download&id=${fileId}`;
+}
+
+// ====== Source preview in admin (auto from Drive link) ======
+function updateSourcePreview() {
+  const raw = adminSourceInput.value.trim();
+  const url = toDriveVideoUrl(raw);
+  if (adminSourcePreview) {
+    adminSourcePreview.value = url || "";
+  }
+}
+
+if (adminSourceInput) {
+  adminSourceInput.addEventListener("input", updateSourcePreview);
 }
 
 // ====== Password gate ======
@@ -294,7 +308,7 @@ function openPlayer(movie) {
   playerVideo
     .play()
     .catch(() => {
-      // Autoplay blocked is not a real error; just hide loader
+      // Autoplay blocked – not fatal
       hideLoading();
     });
 
@@ -395,6 +409,7 @@ adminForm.addEventListener("submit", (e) => {
   }
 
   const source = toDriveVideoUrl(rawSource);
+  updateSourcePreview(); // keep preview in sync
 
   const idBase = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const id = `${idBase}-${Date.now()}`;
