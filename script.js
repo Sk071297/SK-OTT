@@ -5,7 +5,6 @@ const ADMIN_CODE = "skadmin567"; // change this
 let movies = [];
 let filteredMovies = [];
 let isAdmin = false;
-let currentMovieUrl = null; // for "Watch on PikPak" button
 
 // Supabase client (set on DOMContentLoaded)
 let supabaseClient = null;
@@ -22,14 +21,15 @@ const genreFilter = document.getElementById("genre-filter");
 const movieList = document.getElementById("movie-list");
 const reloadBtn = document.getElementById("reload-btn");
 
-// Modal
+// Modal player
 const playerModal = document.getElementById("player-modal");
 const closeModalBtn = document.getElementById("close-modal");
 const playerTitle = document.getElementById("player-title");
 const playerMeta = document.getElementById("player-meta");
 const playerDesc = document.getElementById("player-desc");
+const playerFrame = document.getElementById("player-frame");
+const playerLoading = document.getElementById("player-loading");
 const playerError = document.getElementById("player-error");
-const openPikPakBtn = document.getElementById("open-pikpak-btn");
 
 // Admin
 const adminToggleBtn = document.getElementById("admin-toggle");
@@ -47,31 +47,38 @@ const adminSourceInput = document.getElementById("admin-source");
 const adminSourcePreview = document.getElementById("admin-source-preview");
 const adminMovieList = document.getElementById("admin-movie-list");
 
-// ========= Helper: normalize PikPak share URL =========
-function normalizePikPakUrl(raw) {
+// ========= Helpers: extract Drive file ID & build preview URL =========
+function extractDriveFileId(raw) {
   if (!raw) return "";
-  let url = raw.trim();
 
-  // If someone pastes only "mypikpak.com/s/XXXX" or similar
-  if (!/^https?:\/\//i.test(url)) {
-    url = "https://" + url;
-  }
+  const trimmed = raw.trim();
 
-  return url;
+  // Share URL: /file/d/FILE_ID/...
+  const fileMatch = trimmed.match(/\/file\/d\/([^/]+)/);
+  if (fileMatch && fileMatch[1]) return fileMatch[1];
+
+  // URL with ?id=FILE_ID
+  const openMatch = trimmed.match(/[?&]id=([^&]+)/);
+  if (openMatch && openMatch[1]) return openMatch[1];
+
+  // If user pasted only the ID, just use it
+  return trimmed;
 }
 
-// ====== Source preview in admin ======
+function toDrivePreviewUrl(raw) {
+  const fileId = extractDriveFileId(raw);
+  if (!fileId) return "";
+  return `https://drive.google.com/file/d/${fileId}/preview`;
+}
+
+// ====== Admin: update preview URL field ======
 function updateSourcePreview() {
   const raw = adminSourceInput.value.trim();
-  const url = normalizePikPakUrl(raw);
-  if (adminSourcePreview) {
-    adminSourcePreview.value = url || "";
-  }
+  const url = toDrivePreviewUrl(raw);
+  adminSourcePreview.value = url || "";
 }
 
-if (adminSourceInput) {
-  adminSourceInput.addEventListener("input", updateSourcePreview);
-}
+adminSourceInput.addEventListener("input", updateSourcePreview);
 
 // ====== Lock screen ======
 function tryUnlock() {
@@ -123,7 +130,8 @@ async function loadMovies() {
       genre: m.genre || "",
       description: m.description || "",
       thumbnail: m.thumbnail || "",
-      pikpakUrl: normalizePikPakUrl(m.source || "")
+      rawSource: m.source || "",
+      previewUrl: toDrivePreviewUrl(m.source || "")
     }));
 
     filteredMovies = movies;
@@ -176,7 +184,6 @@ function renderMovies(list) {
     card.appendChild(img);
     card.appendChild(body);
 
-    // open info modal
     card.addEventListener("click", () => openPlayer(movie));
 
     movieList.appendChild(card);
@@ -286,19 +293,28 @@ reloadBtn.addEventListener("click", () => {
   loadMovies();
 });
 
-// ====== Modal / player logic ======
+// ====== Modal / iframe player ======
+function showLoading() {
+  playerLoading.classList.remove("hidden");
+}
+
+function hideLoading() {
+  playerLoading.classList.add("hidden");
+}
+
 function clearError() {
   playerError.textContent = "";
   playerError.classList.add("hidden");
 }
 
 function showError(msg) {
-  playerError.textContent = msg || "Error opening PikPak.";
+  playerError.textContent = msg || "Error loading video.";
   playerError.classList.remove("hidden");
 }
 
 function openPlayer(movie) {
   clearError();
+  showLoading();
 
   playerTitle.textContent = movie.title || "";
   const metaParts = [];
@@ -307,17 +323,30 @@ function openPlayer(movie) {
   playerMeta.textContent = metaParts.join(" • ");
   playerDesc.textContent = movie.description || "";
 
-  currentMovieUrl = movie.pikpakUrl || null;
-
-  if (!currentMovieUrl) {
-    showError("No PikPak link saved for this movie.");
+  const url = movie.previewUrl;
+  if (!url) {
+    hideLoading();
+    showError(
+      "No valid Google Drive link. Check that source is set and shared as 'Anyone with the link – Viewer'."
+    );
+    return;
   }
+
+  // set iframe src
+  playerFrame.src = url;
+
+  // we can't reliably detect when Drive preview is fully ready;
+  // hide loader after a short delay
+  setTimeout(() => {
+    hideLoading();
+  }, 1500);
 
   playerModal.classList.remove("hidden");
 }
 
 function closePlayer() {
-  currentMovieUrl = null;
+  playerFrame.src = "";
+  hideLoading();
   clearError();
   playerModal.classList.add("hidden");
 }
@@ -325,14 +354,6 @@ function closePlayer() {
 closeModalBtn.addEventListener("click", closePlayer);
 playerModal.addEventListener("click", (e) => {
   if (e.target === playerModal) closePlayer();
-});
-
-openPikPakBtn.addEventListener("click", () => {
-  if (!currentMovieUrl) {
-    showError("No PikPak link available.");
-    return;
-  }
-  window.open(currentMovieUrl, "_blank", "noopener,noreferrer");
 });
 
 // ====== Admin toggle ======
@@ -391,7 +412,7 @@ async function saveMovieToSupabase(entry) {
         genre: entry.genre,
         description: entry.description,
         thumbnail: entry.thumbnail,
-        source: entry.pikpakUrl
+        source: entry.rawSource // store raw Drive link / ID
       }
     ])
     .select()
@@ -426,12 +447,12 @@ adminForm.addEventListener("submit", async (e) => {
   const rawSource = adminSourceInput.value.trim();
 
   if (!title || !rawSource) {
-    window.alert("Title and PikPak share link are required.");
+    window.alert("Title and Google Drive link/File ID are required.");
     return;
   }
 
-  const pikpakUrl = normalizePikPakUrl(rawSource);
-  adminSourcePreview.value = pikpakUrl;
+  const previewUrl = toDrivePreviewUrl(rawSource);
+  adminSourcePreview.value = previewUrl;
 
   const movieEntry = {
     title,
@@ -439,7 +460,7 @@ adminForm.addEventListener("submit", async (e) => {
     genre: genre || "",
     description,
     thumbnail,
-    pikpakUrl
+    rawSource
   };
 
   try {

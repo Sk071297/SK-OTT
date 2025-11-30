@@ -6,7 +6,7 @@
     name="viewport"
     content="width=device-width, initial-scale=1.0"
   />
-  <title>SK – Private OTT (PikPak)</title>
+  <title>SK – Private OTT (Google Drive)</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -30,7 +30,7 @@
     <header class="header">
       <div class="logo">
         <span class="logo-main">SK</span>
-        <span class="logo-sub">Private OTT · PikPak</span>
+        <span class="logo-sub">Private OTT · Google Drive</span>
       </div>
 
       <div class="header-right">
@@ -71,9 +71,9 @@
       <section id="admin-panel" class="admin-panel hidden">
         <h2>Admin – Add / Edit Library</h2>
         <p class="admin-hint">
-          1) Upload movie to <strong>PikPak Cloud</strong> →
-          generate a <strong>share link</strong>.<br />
-          2) Paste that link here and save to Supabase.
+          1) Upload movie to <strong>Google Drive</strong>.<br />
+          2) Set sharing to <strong>“Anyone with the link – Viewer”</strong>.<br />
+          3) Paste the Drive link or File ID here.
         </p>
 
         <!-- Add movie form -->
@@ -149,27 +149,28 @@
           </div>
 
           <div class="form-row">
-            <label for="admin-source">PikPak share link</label>
+            <label for="admin-source">Google Drive link or File ID</label>
             <input
               type="text"
               id="admin-source"
-              placeholder="https://mypikpak.com/s/XXXX..."
+              placeholder="https://drive.google.com/file/d/... OR file ID"
               required
             />
             <small class="hint">
-              Use the share URL from PikPak (web or app). Playback opens in a new tab.
+              Example: <br/>
+              https://drive.google.com/file/d/<strong>FILE_ID</strong>/view?usp=sharing
             </small>
           </div>
 
           <div class="form-row">
-            <label for="admin-source-preview">Normalized URL (auto)</label>
+            <label for="admin-source-preview">Final video URL (auto)</label>
             <input
               type="text"
               id="admin-source-preview"
               readonly
             />
             <small class="hint">
-              This is what SK saves and opens on click.
+              This is the <code>/preview</code> URL SK uses in the player.
             </small>
           </div>
 
@@ -193,17 +194,26 @@
     </main>
   </div>
 
-  <!-- Info modal (no embed, just "Watch on PikPak" button) -->
+  <!-- Player modal with Google Drive iframe -->
   <div id="player-modal" class="modal hidden">
     <div class="modal-content">
       <button id="close-modal" class="close-btn">✕</button>
 
       <div class="modal-layout">
         <div class="player-wrapper">
+          <div id="player-loading" class="player-loading hidden">
+            <div class="spinner"></div>
+            <span>Loading video...</span>
+          </div>
           <div id="player-error" class="player-error hidden"></div>
-          <button id="open-pikpak-btn" class="open-pikpak-btn">
-            ▶ Watch on PikPak
-          </button>
+
+          <div class="player-embed-wrapper">
+            <iframe
+              id="player-frame"
+              allow="autoplay; encrypted-media"
+              allowfullscreen
+            ></iframe>
+          </div>
         </div>
 
         <div class="player-info">
