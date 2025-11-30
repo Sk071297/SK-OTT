@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+  <title>SK – Private OTT</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Simple password gate (NOT real security) -->
+  <div id="lock-screen" class="lock-screen">
+    <div class="lock-card">
+      <h1>SK 🔐</h1>
+      <p>Private access only</p>
+      <input
+        type="password"
+        id="access-code"
+        placeholder="Enter access code"
+      />
+      <button id="unlock-btn">Unlock</button>
+      <p id="lock-error" class="error-msg"></p>
+    </div>
+  </div>
+
+  <!-- Main app -->
+  <div id="app" class="app hidden">
+    <header class="header">
+      <div class="logo">
+        <span class="logo-main">SK</span>
+        <span class="logo-sub">Private OTT</span>
+      </div>
+
+      <div class="header-right">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Search movies..."
+          class="search-input"
+        />
+        <button id="admin-toggle" class="admin-btn">
+          Admin
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="filters">
+        <select id="genre-filter" class="filter-select">
+          <option value="">All genres</option>
+          <option value="Action">Action</option>
+          <option value="Drama">Drama</option>
+          <option value="Comedy">Comedy</option>
+          <option value="Romance">Romance</option>
+          <option value="Sci-Fi">Sci-Fi</option>
+        </select>
+      </section>
+
+      <!-- Admin Panel -->
+      <section id="admin-panel" class="admin-panel hidden">
+        <h2>Admin – Add / Generate Movie Entry</h2>
+        <p class="admin-hint">
+          1) Upload video to <strong>JioAICloud</strong> → get public link<br />
+          2) Fill this form → copy JSON block into <code>movies.json</code> in GitHub.
+        </p>
+
+        <form id="admin-form" class="admin-form">
+          <div class="form-row">
+            <label for="admin-title">Title</label>
+            <input type="text" id="admin-title" required />
+          </div>
+
+          <div class="form-row">
+            <label for="admin-year">Year</label>
+            <input
+              type="number"
+              id="admin-year"
+              min="1900"
+              max="2100"
+              value="2025"
+            />
+          </div>
+
+          <div class="form-row">
+            <label for="admin-genre">Genre</label>
+            <input
+              type="text"
+              id="admin-genre"
+              placeholder="Action / Drama / etc."
+            />
+          </div>
+
+          <div class="form-row">
+            <label for="admin-desc">Description</label>
+            <textarea
+              id="admin-desc"
+              rows="3"
+              placeholder="Short description..."
+            ></textarea>
+          </div>
+
+          <div class="form-row">
+            <label for="admin-thumb">Thumbnail URL</label>
+            <input
+              type="text"
+              id="admin-thumb"
+              placeholder="https://... (optional)"
+            />
+          </div>
+
+          <div class="form-row">
+            <label for="admin-source">JioAICloud Video URL</label>
+            <input
+              type="text"
+              id="admin-source"
+              placeholder="https://share.jioaicloud.com/..."
+              required
+            />
+          </div>
+
+          <button type="submit" class="admin-submit-btn">
+            ➕ Generate & Preview Entry
+          </button>
+        </form>
+
+        <div class="admin-output-block">
+          <p>
+            JSON entry (copy this into your <code>movies.json</code> array):
+          </p>
+          <textarea
+            id="admin-output"
+            rows="6"
+            readonly
+            class="admin-output"
+          ></textarea>
+        </div>
+      </section>
+
+      <!-- Movie grid -->
+      <section id="movie-list" class="movie-grid">
+        <!-- Cards rendered by JS -->
+      </section>
+    </main>
+  </div>
+
+  <!-- Player modal -->
+  <div id="player-modal" class="modal hidden">
+    <div class="modal-content">
+      <button id="close-modal" class="close-btn">✕</button>
+      <h2 id="player-title"></h2>
+      <p id="player-meta" class="player-meta"></p>
+      <p id="player-desc" class="player-desc"></p>
+      <video id="player-video" controls playsinline></video>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

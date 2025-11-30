@@ -1,0 +1,361 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background: radial-gradient(circle at top, #141b2f, #050712 50%, #02020a);
+  color: #f7f7ff;
+  min-height: 100vh;
+}
+
+/* Lock screen */
+.lock-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top, #050816, #02010a);
+  z-index: 1000;
+}
+
+.lock-card {
+  background: rgba(10, 14, 35, 0.95);
+  border-radius: 18px;
+  padding: 24px 20px;
+  width: 90%;
+  max-width: 360px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.7);
+}
+
+.lock-card h1 {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+
+.lock-card p {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 16px;
+}
+
+.lock-card input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(140, 160, 255, 0.6);
+  background: rgba(3, 6, 36, 0.9);
+  color: #f7f7ff;
+  outline: none;
+  margin-bottom: 10px;
+}
+
+.lock-card button {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  background: linear-gradient(135deg, #ff7b39, #ff3b7f);
+  color: #fff;
+  box-shadow: 0 10px 25px rgba(255, 59, 127, 0.4);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.lock-card button:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 15px rgba(255, 59, 127, 0.4);
+}
+
+.error-msg {
+  color: #ff8e8e;
+  font-size: 0.8rem;
+  min-height: 1.2em;
+}
+
+/* App layout */
+.hidden {
+  display: none !important;
+}
+
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 12px 12px 24px;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.logo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.logo-main {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.logo-sub {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 160px;
+  max-width: 260px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(129, 140, 248, 0.7);
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7ff;
+  outline: none;
+}
+
+.admin-btn {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(56, 189, 248, 0.12);
+  color: #7dd3fc;
+  border: 1px solid rgba(56, 189, 248, 0.7);
+}
+
+/* Filters */
+.filters {
+  margin-bottom: 12px;
+}
+
+.filter-select {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(129, 140, 248, 0.7);
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7ff;
+}
+
+/* Admin Panel */
+.admin-panel {
+  margin-bottom: 18px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.96);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.admin-panel h2 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.admin-hint {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-bottom: 10px;
+}
+
+.admin-form {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-row label {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.form-row input,
+.form-row textarea {
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 255, 0.7);
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7ff;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.admin-submit-btn {
+  margin-top: 4px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #ecfdf5;
+  box-shadow: 0 10px 25px rgba(22, 163, 74, 0.4);
+}
+
+.admin-output-block {
+  margin-top: 6px;
+}
+
+.admin-output-block p {
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+
+.admin-output {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 255, 0.7);
+  background: rgba(3, 7, 18, 0.9);
+  color: #e5e7ff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 0.8rem;
+}
+
+/* Movie grid */
+.movie-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+  .movie-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .movie-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.movie-card {
+  background: rgba(15, 23, 42, 0.95);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease,
+    background 0.12s ease;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.8);
+}
+
+.movie-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 1);
+  background: radial-gradient(circle at top, #1f2937, #020617);
+}
+
+.movie-thumb {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  display: block;
+}
+
+.movie-body {
+  padding: 8px 8px 10px;
+}
+
+.movie-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.movie-meta {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+/* Modal player */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 900;
+  padding: 12px;
+}
+
+.modal-content {
+  background: #020617;
+  border-radius: 18px;
+  padding: 12px 12px 18px;
+  width: 100%;
+  max-width: 720px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+}
+
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: none;
+  background: rgba(15, 23, 42, 0.9);
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #e5e7eb;
+  font-size: 0.9rem;
+}
+
+.modal-content h2 {
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.player-meta {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-bottom: 6px;
+}
+
+.player-desc {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+video {
+  width: 100%;
+  border-radius: 12px;
+  max-height: 60vh;
+  background: #000;
+}

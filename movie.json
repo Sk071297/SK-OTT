@@ -1,0 +1,20 @@
+[
+  {
+    "id": "sk-movie-1",
+    "title": "Sample Movie One",
+    "year": 2024,
+    "genre": "Action",
+    "description": "An action demo movie for SK OTT.",
+    "thumbnail": "https://via.placeholder.com/300x450?text=SK+Movie+1",
+    "source": "https://share.jioaicloud.com/your-public-link-id-1"
+  },
+  {
+    "id": "sk-movie-2",
+    "title": "My Travel Vlog",
+    "year": 2023,
+    "genre": "Drama",
+    "description": "Personal travel vlog hosted on SK.",
+    "thumbnail": "https://via.placeholder.com/300x450?text=SK+Movie+2",
+    "source": "https://share.jioaicloud.com/your-public-link-id-2"
+  }
+]
