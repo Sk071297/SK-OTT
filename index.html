@@ -67,7 +67,7 @@
         </select>
       </section>
 
-      <!-- Admin Panel -->
+      <!-- Admin Panel (no JSON boxes) -->
       <section id="admin-panel" class="admin-panel hidden">
         <h2>Admin – Add / Edit Library</h2>
         <p class="admin-hint">
@@ -184,27 +184,6 @@
           </p>
           <div id="admin-movie-list" class="admin-movie-list"></div>
         </div>
-
-        <!-- JSON preview (optional – you can delete this whole block if you hate it) -->
-        <div class="admin-output-block">
-          <p>JSON entry for the last movie you added (for backup/export):</p>
-          <textarea
-            id="admin-output"
-            rows="6"
-            readonly
-            class="admin-output"
-          ></textarea>
-        </div>
-
-        <div class="admin-output-block">
-          <p>Full library JSON (current database snapshot):</p>
-          <textarea
-            id="admin-output-full"
-            rows="10"
-            readonly
-            class="admin-output"
-          ></textarea>
-        </div>
       </section>
 
       <!-- Movie grid -->
@@ -250,11 +229,10 @@
     const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhuZWl3ZG14eWFrcW9hbG1ja3VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MTkwNTIsImV4cCI6MjA4MDA5NTA1Mn0.iIjVhdC6dGsPuYe-DjhOyOO0lzUD9IuyEj3I89CfFJ4";
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    // expose to script.js
-    window.supabase = supabase;
+    window.supabase = supabase; // expose to script.js
   </script>
 
-  <!-- Then your main JS (defer so it runs after parsing) -->
+  <!-- Main logic -->
   <script src="script.js" defer></script>
 </body>
 </html>

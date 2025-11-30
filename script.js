@@ -6,7 +6,7 @@ let movies = [];
 let filteredMovies = [];
 let isAdmin = false;
 
-// will be assigned after DOMContentLoaded
+// Supabase client will be set after DOMContentLoaded
 let supabaseClient = null;
 
 // DOM elements
@@ -44,8 +44,6 @@ const adminThumbInput = document.getElementById("admin-thumb");
 const thumbPreview = document.getElementById("thumb-preview");
 const adminSourceInput = document.getElementById("admin-source");
 const adminSourcePreview = document.getElementById("admin-source-preview");
-const adminOutput = document.getElementById("admin-output");
-const adminOutputFull = document.getElementById("admin-output-full");
 const adminMovieList = document.getElementById("admin-movie-list");
 
 // ========= Helper: convert Drive URL / ID → direct video URL =========
@@ -144,7 +142,6 @@ async function loadMovies() {
 
     filteredMovies = movies;
     renderMovies(filteredMovies);
-    updateAdminFullJson();
     renderAdminMovieList();
   } catch (err) {
     console.error("Unexpected error loading movies:", err);
@@ -383,7 +380,6 @@ adminToggleBtn.addEventListener("click", () => {
       isAdmin = true;
       adminPanel.classList.remove("hidden");
       adminToggleBtn.textContent = "Admin (ON)";
-      updateAdminFullJson();
       renderAdminMovieList();
     } else if (enteredAdmin) {
       window.alert("Wrong admin code.");
@@ -474,12 +470,7 @@ adminForm.addEventListener("submit", async (e) => {
   const source = toDriveVideoUrl(rawSource);
   updateSourcePreview();
 
-  // temp id just for JSON preview
-  const idBase = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  const tempId = `${idBase}-${Date.now()}`;
-
   const movieEntry = {
-    id: tempId,
     title,
     year: year || null,
     genre: genre || "",
@@ -487,8 +478,6 @@ adminForm.addEventListener("submit", async (e) => {
     thumbnail,
     source
   };
-
-  adminOutput.value = JSON.stringify(movieEntry, null, 2);
 
   try {
     await saveMovieToSupabase(movieEntry);
@@ -499,22 +488,12 @@ adminForm.addEventListener("submit", async (e) => {
   }
 });
 
-// ====== Admin helper: full JSON snapshot ======
-function updateAdminFullJson() {
-  if (!Array.isArray(movies) || movies.length === 0) {
-    adminOutputFull.value = "[]";
-    return;
-  }
-  adminOutputFull.value = JSON.stringify(movies, null, 2);
-}
-
 // ====== Init ======
 document.addEventListener("DOMContentLoaded", () => {
-  // grab Supabase client created in index.html
   supabaseClient = window.supabase || null;
 
   if (!supabaseClient) {
-    console.error("Supabase not found on window. Check index.html script order and config.");
+    console.error("Supabase not found on window. Check index.html config.");
   }
 
   loadMovies();

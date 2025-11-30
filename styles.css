@@ -266,27 +266,6 @@ body {
   box-shadow: 0 10px 25px rgba(22, 163, 74, 0.4);
 }
 
-.admin-output-block {
-  margin-top: 10px;
-}
-
-.admin-output-block p {
-  font-size: 0.8rem;
-  margin-bottom: 4px;
-}
-
-.admin-output {
-  width: 100%;
-  padding: 6px 8px;
-  border-radius: 10px;
-  border: 1px solid rgba(148, 163, 255, 0.7);
-  background: rgba(3, 7, 18, 0.9);
-  color: #e5e7ff;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
-  font-size: 0.78rem;
-}
-
 /* Admin movie list */
 .admin-movie-list-block {
   margin-top: 14px;
