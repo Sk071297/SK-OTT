@@ -1,6 +1,10 @@
-// ====== Configuration ======
-const ACCESS_CODE = "sk1234";    // change this
-const ADMIN_CODE = "skadmin567"; // change this
+// ===============================
+// SK – Private OTT (Google Drive)
+// ===============================
+
+// ------- Config -------
+const ACCESS_CODE = "sk1234";    // viewer code – change this
+const ADMIN_CODE = "skadmin567"; // admin code – change this
 
 let movies = [];
 let filteredMovies = [];
@@ -9,19 +13,22 @@ let isAdmin = false;
 // Supabase client (set on DOMContentLoaded)
 let supabaseClient = null;
 
-// ====== DOM elements ======
+// ------- DOM elements -------
+
+// Lock screen
 const lockScreen = document.getElementById("lock-screen");
 const app = document.getElementById("app");
 const accessCodeInput = document.getElementById("access-code");
 const unlockBtn = document.getElementById("unlock-btn");
 const lockError = document.getElementById("lock-error");
 
+// Main UI
 const searchInput = document.getElementById("search-input");
 const genreFilter = document.getElementById("genre-filter");
 const movieList = document.getElementById("movie-list");
 const reloadBtn = document.getElementById("reload-btn");
 
-// Modal player
+// Player modal
 const playerModal = document.getElementById("player-modal");
 const closeModalBtn = document.getElementById("close-modal");
 const playerTitle = document.getElementById("player-title");
@@ -47,47 +54,54 @@ const adminSourceInput = document.getElementById("admin-source");
 const adminSourcePreview = document.getElementById("admin-source-preview");
 const adminMovieList = document.getElementById("admin-movie-list");
 
-// ========= Helpers: extract Drive file ID & build preview URL =========
+// ===============================
+// Helpers – Google Drive links
+// ===============================
+
+// Accepts:
+//  - full share link: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+//  - open link:       https://drive.google.com/open?id=FILE_ID
+//  - just:            FILE_ID
 function extractDriveFileId(raw) {
   if (!raw) return "";
 
   const trimmed = raw.trim();
 
-  // Share URL: /file/d/FILE_ID/...
+  // /file/d/FILE_ID/...
   const fileMatch = trimmed.match(/\/file\/d\/([^/]+)/);
-  if (fileMatch && fileMatch[1]) {
-    console.debug("extractDriveFileId ->", fileMatch[1]);
-    return fileMatch[1];
-  }
+  if (fileMatch && fileMatch[1]) return fileMatch[1];
 
-  // URL with ?id=FILE_ID
+  // ?id=FILE_ID
   const openMatch = trimmed.match(/[?&]id=([^&]+)/);
-  if (openMatch && openMatch[1]) {
-    console.debug("extractDriveFileId ->", openMatch[1]);
-    return openMatch[1];
-  }
+  if (openMatch && openMatch[1]) return openMatch[1];
 
-  // If user pasted only the ID, just use it
-  console.debug("extractDriveFileId -> raw ID:", trimmed);
+  // Assume they pasted only the ID
   return trimmed;
 }
 
+// Build the final /preview URL used by the iframe player
 function toDrivePreviewUrl(raw) {
   const fileId = extractDriveFileId(raw);
   if (!fileId) return "";
   return `https://drive.google.com/file/d/${fileId}/preview`;
 }
 
-// ====== Admin: update preview URL field ======
+// Admin side: auto-fill final URL field while typing
 function updateSourcePreview() {
+  if (!adminSourceInput || !adminSourcePreview) return;
   const raw = adminSourceInput.value.trim();
   const url = toDrivePreviewUrl(raw);
   adminSourcePreview.value = url || "";
 }
 
-adminSourceInput.addEventListener("input", updateSourcePreview);
+if (adminSourceInput) {
+  adminSourceInput.addEventListener("input", updateSourcePreview);
+}
 
-// ====== Lock screen ======
+// ===============================
+// Lock screen
+// ===============================
+
 function tryUnlock() {
   const entered = accessCodeInput.value.trim();
   if (!entered) {
@@ -109,12 +123,14 @@ accessCodeInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") tryUnlock();
 });
 
-// ====== Load movies from Supabase ======
+// ===============================
+// Load from Supabase
+// ===============================
+
 async function loadMovies() {
-  console.debug("loadMovies: supabaseClient =", supabaseClient);
   if (!supabaseClient) {
     movieList.innerHTML =
-      "<p>Supabase not initialized. Check URL and anon key in index.html. See console for details.</p>";
+      "<p style='color:#fecaca'>Supabase not initialized. Check URL and anon key in index.html.</p>";
     return;
   }
 
@@ -124,12 +140,12 @@ async function loadMovies() {
       .select("*")
       .order("created_at", { ascending: false });
 
-    console.debug("Supabase response:", { data, error });
-
     if (error) {
       console.error("Supabase select error:", error);
       movieList.innerHTML =
-        "<p>Could not load movies from Supabase. Check console.</p>";
+        "<p style='color:#fecaca'>Supabase error: " +
+        (error.message || "see console") +
+        "</p>";
       return;
     }
 
@@ -150,11 +166,14 @@ async function loadMovies() {
   } catch (err) {
     console.error("Unexpected error loading movies:", err);
     movieList.innerHTML =
-      "<p>Unexpected error loading movies. Check console.</p>";
+      "<p style='color:#fecaca'>Unexpected error loading movies. See console.</p>";
   }
 }
 
-// ====== Render movies grid ======
+// ===============================
+// Render movie cards
+// ===============================
+
 function renderMovies(list) {
   if (!list || list.length === 0) {
     movieList.innerHTML = "<p>No movies found.</p>";
@@ -179,7 +198,7 @@ function renderMovies(list) {
 
     const titleEl = document.createElement("h3");
     titleEl.className = "movie-title";
-    titleEl.textContent = movie.title;
+    titleEl.textContent = movie.title || "(No title)";
 
     const metaEl = document.createElement("p");
     metaEl.className = "movie-meta";
@@ -200,7 +219,10 @@ function renderMovies(list) {
   });
 }
 
-// ====== Admin movie list (for delete) ======
+// ===============================
+// Admin – list + delete
+// ===============================
+
 function renderAdminMovieList() {
   if (!adminMovieList) return;
 
@@ -276,7 +298,10 @@ async function deleteMovie(id) {
   }
 }
 
-// ====== Search & filter ======
+// ===============================
+// Search & filter
+// ===============================
+
 function applyFilters() {
   const searchText = (searchInput.value || "").toLowerCase();
   const genreValue = genreFilter.value;
@@ -284,7 +309,7 @@ function applyFilters() {
   filteredMovies = movies.filter((m) => {
     const matchesSearch =
       !searchText ||
-      m.title.toLowerCase().includes(searchText) ||
+      (m.title || "").toLowerCase().includes(searchText) ||
       (m.description || "").toLowerCase().includes(searchText);
 
     const matchesGenre =
@@ -303,21 +328,26 @@ reloadBtn.addEventListener("click", () => {
   loadMovies();
 });
 
-// ====== Modal / iframe player ======
+// ===============================
+// Player modal (Google Drive iframe)
+// ===============================
+
 function showLoading() {
-  playerLoading.classList.remove("hidden");
+  if (playerLoading) playerLoading.classList.remove("hidden");
 }
 
 function hideLoading() {
-  playerLoading.classList.add("hidden");
+  if (playerLoading) playerLoading.classList.add("hidden");
 }
 
 function clearError() {
+  if (!playerError) return;
   playerError.textContent = "";
   playerError.classList.add("hidden");
 }
 
 function showError(msg) {
+  if (!playerError) return;
   playerError.textContent = msg || "Error loading video.";
   playerError.classList.remove("hidden");
 }
@@ -334,19 +364,17 @@ function openPlayer(movie) {
   playerDesc.textContent = movie.description || "";
 
   const url = movie.previewUrl;
-  console.debug("openPlayer: movie id=", movie.id, "previewUrl=", url);
   if (!url) {
     hideLoading();
     showError(
-      "No valid Google Drive link. Check that source is set and shared as 'Anyone with the link – Viewer'."
+      "No valid Google Drive link. Check that the source is set and shared as 'Anyone with the link – Viewer'."
     );
     return;
   }
 
-  // set iframe src
   playerFrame.src = url;
 
-  // we can't reliably detect when Drive preview is fully ready;
+  // we can't detect exactly when the preview is ready;
   // hide loader after a short delay
   setTimeout(() => {
     hideLoading();
@@ -367,7 +395,10 @@ playerModal.addEventListener("click", (e) => {
   if (e.target === playerModal) closePlayer();
 });
 
-// ====== Admin toggle ======
+// ===============================
+// Admin controls
+// ===============================
+
 adminToggleBtn.addEventListener("click", () => {
   if (!isAdmin) {
     const enteredAdmin = window.prompt("Enter admin code:");
@@ -391,7 +422,7 @@ adminToggleBtn.addEventListener("click", () => {
   }
 });
 
-// Genre: show custom input when "Other" selected
+// Genre custom field
 adminGenreSelect.addEventListener("change", () => {
   if (adminGenreSelect.value === "Other") {
     customGenreRow.classList.remove("hidden");
@@ -407,7 +438,7 @@ adminThumbInput.addEventListener("input", () => {
   thumbPreview.src = url || "";
 });
 
-// ====== Save movie to Supabase ======
+// Insert movie into Supabase
 async function saveMovieToSupabase(entry) {
   if (!supabaseClient) {
     alert("Supabase not initialized – check config.");
@@ -423,7 +454,7 @@ async function saveMovieToSupabase(entry) {
         genre: entry.genre,
         description: entry.description,
         thumbnail: entry.thumbnail,
-        source: entry.rawSource // store raw Drive link / ID
+        source: entry.rawSource
       }
     ])
     .select()
@@ -441,7 +472,7 @@ async function saveMovieToSupabase(entry) {
   return data;
 }
 
-// ====== Admin form submit ======
+// Admin form submit
 adminForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -483,10 +514,12 @@ adminForm.addEventListener("submit", async (e) => {
   }
 });
 
-// ====== Init ======
+// ===============================
+// Init
+// ===============================
+
 document.addEventListener("DOMContentLoaded", () => {
   supabaseClient = window.supabase || null;
-  console.debug("DOMContentLoaded: window.supabase =", window.supabase);
   if (!supabaseClient) {
     console.error("Supabase not found on window. Check index.html config.");
   }
