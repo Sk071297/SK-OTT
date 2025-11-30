@@ -1,6 +1,6 @@
 // ====== Configuration ======
-const ACCESS_CODE = "sk1234";    // viewer code – change this
-const ADMIN_CODE = "skadmin567"; // admin code – change this
+const ACCESS_CODE = "SKOTT";    // viewer code – change this
+const ADMIN_CODE = "Adminott12"; // admin code – change this
 
 let movies = [];
 let filteredMovies = [];
