@@ -135,6 +135,17 @@ body {
   outline: none;
 }
 
+.reload-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 255, 0.7);
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
 .admin-btn {
   padding: 8px 14px;
   border-radius: 999px;
@@ -193,13 +204,20 @@ body {
   gap: 4px;
 }
 
+.form-row.two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
 .form-row label {
   font-size: 0.8rem;
   opacity: 0.85;
 }
 
 .form-row input,
-.form-row textarea {
+.form-row textarea,
+.form-row select {
   padding: 6px 10px;
   border-radius: 10px;
   border: 1px solid rgba(148, 163, 255, 0.7);
@@ -207,6 +225,32 @@ body {
   color: #e5e7ff;
   font-size: 0.85rem;
   outline: none;
+}
+
+.hint {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.thumb-preview-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.thumb-preview-label {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.thumb-preview {
+  width: 60px;
+  height: 90px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid rgba(148, 163, 255, 0.6);
+  background: rgba(15, 23, 42, 0.9);
 }
 
 .admin-submit-btn {
@@ -223,7 +267,7 @@ body {
 }
 
 .admin-output-block {
-  margin-top: 6px;
+  margin-top: 10px;
 }
 
 .admin-output-block p {
@@ -240,7 +284,7 @@ body {
   color: #e5e7ff;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
 
 /* Movie grid */
@@ -317,7 +361,7 @@ body {
   border-radius: 18px;
   padding: 12px 12px 18px;
   width: 100%;
-  max-width: 720px;
+  max-width: 900px;
   position: relative;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
 }
@@ -336,8 +380,74 @@ body {
   font-size: 0.9rem;
 }
 
-.modal-content h2 {
-  margin-top: 8px;
+.modal-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (min-width: 768px) {
+  .modal-layout {
+    flex-direction: row;
+    gap: 16px;
+  }
+}
+
+.player-wrapper {
+  position: relative;
+  flex: 3;
+}
+
+.player-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+  background: rgba(15, 23, 42, 0.75);
+  gap: 6px;
+  font-size: 0.85rem;
+  z-index: 2;
+}
+
+.spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 3px solid rgba(148, 163, 255, 0.4);
+  border-top-color: #a5b4fc;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.player-error {
+  background: rgba(248, 113, 113, 0.16);
+  border-radius: 10px;
+  border: 1px solid rgba(248, 113, 113, 0.6);
+  padding: 6px 8px;
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+}
+
+video {
+  width: 100%;
+  border-radius: 12px;
+  max-height: 60vh;
+  background: #000;
+}
+
+.player-info {
+  flex: 2;
+}
+
+.player-info h2 {
   margin-bottom: 4px;
 }
 
@@ -348,14 +458,7 @@ body {
 }
 
 .player-desc {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   opacity: 0.9;
-  margin-bottom: 8px;
-}
-
-video {
-  width: 100%;
-  border-radius: 12px;
-  max-height: 60vh;
-  background: #000;
+  line-height: 1.4;
 }

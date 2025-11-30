@@ -40,6 +40,9 @@
           placeholder="Search movies..."
           class="search-input"
         />
+        <button id="reload-btn" class="reload-btn" title="Reload from movies.json">
+          ⟳
+        </button>
         <button id="admin-toggle" class="admin-btn">
           Admin
         </button>
@@ -55,6 +58,11 @@
           <option value="Comedy">Comedy</option>
           <option value="Romance">Romance</option>
           <option value="Sci-Fi">Sci-Fi</option>
+          <option value="Thriller">Thriller</option>
+          <option value="Horror">Horror</option>
+          <option value="Documentary">Documentary</option>
+          <option value="Animation">Animation</option>
+          <option value="Other">Other</option>
         </select>
       </section>
 
@@ -63,7 +71,7 @@
         <h2>Admin – Add / Generate Movie Entry</h2>
         <p class="admin-hint">
           1) Upload video to <strong>Google Drive</strong> → get share link<br />
-          2) Fill this form → copy JSON block into <code>movies.json</code> in GitHub.
+          2) Fill this form → preview card + JSON → paste into <code>movies.json</code> in GitHub.
         </p>
 
         <form id="admin-form" class="admin-form">
@@ -72,23 +80,41 @@
             <input type="text" id="admin-title" required />
           </div>
 
-          <div class="form-row">
-            <label for="admin-year">Year</label>
-            <input
-              type="number"
-              id="admin-year"
-              min="1900"
-              max="2100"
-              value="2025"
-            />
+          <div class="form-row two-col">
+            <div>
+              <label for="admin-year">Year</label>
+              <input
+                type="number"
+                id="admin-year"
+                min="1900"
+                max="2100"
+                value="2025"
+              />
+            </div>
+            <div>
+              <label for="admin-genre">Genre</label>
+              <select id="admin-genre">
+                <option value="">Select genre</option>
+                <option value="Action">Action</option>
+                <option value="Drama">Drama</option>
+                <option value="Comedy">Comedy</option>
+                <option value="Romance">Romance</option>
+                <option value="Sci-Fi">Sci-Fi</option>
+                <option value="Thriller">Thriller</option>
+                <option value="Horror">Horror</option>
+                <option value="Documentary">Documentary</option>
+                <option value="Animation">Animation</option>
+                <option value="Other">Other (custom)</option>
+              </select>
+            </div>
           </div>
 
-          <div class="form-row">
-            <label for="admin-genre">Genre</label>
+          <div class="form-row hidden" id="custom-genre-row">
+            <label for="admin-genre-custom">Custom genre (for "Other")</label>
             <input
               type="text"
-              id="admin-genre"
-              placeholder="Action / Drama / etc."
+              id="admin-genre-custom"
+              placeholder="Eg: Fantasy, Biopic, etc."
             />
           </div>
 
@@ -106,8 +132,15 @@
             <input
               type="text"
               id="admin-thumb"
-              placeholder="https://... (optional)"
+              placeholder="https://... (poster image URL)"
             />
+            <small class="hint">
+              Tip: You can use https://via.placeholder.com/300x450?text=My+Movie or a direct image URL.
+            </small>
+            <div class="thumb-preview-wrapper">
+              <div class="thumb-preview-label">Preview:</div>
+              <img id="thumb-preview" class="thumb-preview" alt="Thumbnail preview" />
+            </div>
           </div>
 
           <div class="form-row">
@@ -118,6 +151,9 @@
               placeholder="Drive share link or file id"
               required
             />
+            <small class="hint">
+              Must be a video (e.g. MP4) with Drive sharing set to "Anyone with the link – Viewer".
+            </small>
           </div>
 
           <button type="submit" class="admin-submit-btn">
@@ -127,11 +163,23 @@
 
         <div class="admin-output-block">
           <p>
-            JSON entry (copy this into your <code>movies.json</code> array):
+            JSON entry to add into your <code>movies.json</code> array:
           </p>
           <textarea
             id="admin-output"
             rows="6"
+            readonly
+            class="admin-output"
+          ></textarea>
+        </div>
+
+        <div class="admin-output-block">
+          <p>
+            Full <code>movies.json</code> (including this entry). You can copy & paste this entire content into your GitHub file:
+          </p>
+          <textarea
+            id="admin-output-full"
+            rows="10"
             readonly
             class="admin-output"
           ></textarea>
@@ -145,14 +193,32 @@
     </main>
   </div>
 
-  <!-- Player modal -->
+  <!-- Player modal with improved layout -->
   <div id="player-modal" class="modal hidden">
     <div class="modal-content">
       <button id="close-modal" class="close-btn">✕</button>
-      <h2 id="player-title"></h2>
-      <p id="player-meta" class="player-meta"></p>
-      <p id="player-desc" class="player-desc"></p>
-      <video id="player-video" controls playsinline></video>
+
+      <div class="modal-layout">
+        <div class="player-wrapper">
+          <div id="player-loading" class="player-loading hidden">
+            <div class="spinner"></div>
+            <span>Loading video...</span>
+          </div>
+          <div id="player-error" class="player-error hidden"></div>
+          <video
+            id="player-video"
+            controls
+            playsinline
+            preload="metadata"
+          ></video>
+        </div>
+
+        <div class="player-info">
+          <h2 id="player-title"></h2>
+          <p id="player-meta" class="player-meta"></p>
+          <p id="player-desc" class="player-desc"></p>
+        </div>
+      </div>
     </div>
   </div>
 

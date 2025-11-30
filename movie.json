@@ -1,11 +1,11 @@
 [
   {
     "id": "sk-movie-1",
-    "title": "My Short Film",
+    "title": "My First SK Movie",
     "year": 2025,
     "genre": "Drama",
-    "description": "Short film hosted on Google Drive and streamed via SK.",
-    "thumbnail": "https://via.placeholder.com/300x450?text=My+Short+Film",
+    "description": "My first test movie on SK OTT, streamed from Google Drive.",
+    "thumbnail": "https://via.placeholder.com/300x450?text=My+First+SK+Movie",
     "source": "https://drive.google.com/file/d/YOUR_FILE_ID_HERE/view?usp=sharing"
   }
 ]
