@@ -42,6 +42,7 @@ const thumbPreview = document.getElementById("thumb-preview");
 const adminSourceInput = document.getElementById("admin-source");
 const adminOutput = document.getElementById("admin-output");
 const adminOutputFull = document.getElementById("admin-output-full");
+const adminMovieList = document.getElementById("admin-movie-list");
 
 // ========= Helper: convert Drive URL / ID → direct video URL =========
 function toDriveVideoUrl(raw) {
@@ -111,6 +112,7 @@ async function loadMovies() {
     filteredMovies = movies;
     renderMovies(filteredMovies);
     updateAdminFullJson();
+    renderAdminMovieList();
   } catch (err) {
     console.error(err);
     movieList.innerHTML =
@@ -162,6 +164,70 @@ function renderMovies(list) {
 
     movieList.appendChild(card);
   });
+}
+
+// ====== Admin movie list (for delete) ======
+function renderAdminMovieList() {
+  if (!adminMovieList) return;
+
+  if (!movies || movies.length === 0) {
+    adminMovieList.innerHTML =
+      "<p class='admin-hint'>No movies loaded yet. Add a movie above or reload from <code>movies.json</code>.</p>";
+    return;
+  }
+
+  adminMovieList.innerHTML = "";
+
+  movies.forEach((m) => {
+    const item = document.createElement("div");
+    item.className = "admin-movie-item";
+
+    const main = document.createElement("div");
+    main.className = "admin-movie-main";
+
+    const title = document.createElement("div");
+    title.className = "admin-movie-title";
+    title.textContent = m.title || "(No title)";
+
+    const meta = document.createElement("div");
+    meta.className = "admin-movie-meta";
+    const parts = [];
+    if (m.year) parts.push(m.year);
+    if (m.genre) parts.push(m.genre);
+    meta.textContent = parts.join(" • ");
+
+    const idLine = document.createElement("div");
+    idLine.className = "admin-movie-id";
+    idLine.textContent = m.id || "";
+
+    main.appendChild(title);
+    main.appendChild(meta);
+    main.appendChild(idLine);
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "admin-delete-btn";
+    delBtn.textContent = "Delete";
+    delBtn.addEventListener("click", () => deleteMovie(m.id));
+
+    item.appendChild(main);
+    item.appendChild(delBtn);
+
+    adminMovieList.appendChild(item);
+  });
+}
+
+function deleteMovie(id) {
+  if (!id) return;
+  const confirmDelete = window.confirm(
+    "Delete this movie from the current list and JSON preview? (You must still update movies.json in GitHub to make it permanent.)"
+  );
+  if (!confirmDelete) return;
+
+  movies = movies.filter((m) => m.id !== id);
+  filteredMovies = movies;
+  renderMovies(filteredMovies);
+  renderAdminMovieList();
+  updateAdminFullJson();
 }
 
 // ====== Search & filter ======
@@ -274,6 +340,7 @@ adminToggleBtn.addEventListener("click", () => {
       adminPanel.classList.remove("hidden");
       adminToggleBtn.textContent = "Admin (ON)";
       updateAdminFullJson();
+      renderAdminMovieList();
     } else if (enteredAdmin) {
       window.alert("Wrong admin code.");
     }
@@ -281,6 +348,7 @@ adminToggleBtn.addEventListener("click", () => {
     if (adminPanel.classList.contains("hidden")) {
       adminPanel.classList.remove("hidden");
       adminToggleBtn.textContent = "Admin (ON)";
+      renderAdminMovieList();
     } else {
       adminPanel.classList.add("hidden");
       adminToggleBtn.textContent = "Admin";
@@ -300,11 +368,7 @@ adminGenreSelect.addEventListener("change", () => {
 // Thumbnail preview
 adminThumbInput.addEventListener("input", () => {
   const url = adminThumbInput.value.trim();
-  if (!url) {
-    thumbPreview.src = "";
-    return;
-  }
-  thumbPreview.src = url;
+  thumbPreview.src = url || "";
 });
 
 // ====== Admin form: generate JSON + update in-memory list ======
@@ -348,10 +412,11 @@ adminForm.addEventListener("submit", (e) => {
   const jsonBlock = JSON.stringify(movieEntry, null, 2);
   adminOutput.value = jsonBlock;
 
-  // Add to current list so you see it immediately
   movies.push(movieEntry);
+  filteredMovies = movies;
   applyFilters();
   updateAdminFullJson();
+  renderAdminMovieList();
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 });

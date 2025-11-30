@@ -69,12 +69,14 @@
 
       <!-- Admin Panel -->
       <section id="admin-panel" class="admin-panel hidden">
-        <h2>Admin – Add / Generate Movie Entry</h2>
+        <h2>Admin – Add / Edit Library</h2>
         <p class="admin-hint">
           1) Upload video to <strong>Google Drive</strong> → get share link<br />
-          2) Fill this form → preview card + JSON → paste into <code>movies.json</code> in GitHub.
+          2) Use this form to create entries and manage your list<br />
+          3) Finally copy the full JSON and paste into <code>movies.json</code> in GitHub to save permanently.
         </p>
 
+        <!-- Add movie form -->
         <form id="admin-form" class="admin-form">
           <div class="form-row">
             <label for="admin-title">Title</label>
@@ -159,13 +161,26 @@
           </div>
 
           <button type="submit" class="admin-submit-btn">
-            ➕ Generate & Preview Entry
+            ➕ Add movie to list
           </button>
         </form>
 
+        <!-- Current movies list with delete -->
+        <div class="admin-movie-list-block">
+          <h3>Current movies in this session</h3>
+          <p class="admin-hint">
+            Click <strong>Delete</strong> to remove an entry from the list and from the JSON preview below.
+            To make it permanent, copy the full JSON and update <code>movies.json</code> in GitHub.
+          </p>
+          <div id="admin-movie-list" class="admin-movie-list">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+
+        <!-- JSON previews -->
         <div class="admin-output-block">
           <p>
-            JSON entry to add into your <code>movies.json</code> array:
+            JSON entry for the last movie you added:
           </p>
           <textarea
             id="admin-output"
@@ -177,7 +192,7 @@
 
         <div class="admin-output-block">
           <p>
-            Full <code>movies.json</code> (including this entry). You can copy & paste this entire content into your GitHub file:
+            Full <code>movies.json</code> for your site (copy this into your GitHub file to save all changes):
           </p>
           <textarea
             id="admin-output-full"
