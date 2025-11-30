@@ -2,9 +2,6 @@
 const ACCESS_CODE = "sk1234";    // viewer code – change this
 const ADMIN_CODE = "skadmin567"; // admin code – change this
 
-// ⬇️ PASTE YOUR GOOGLE DRIVE API KEY HERE
-const DRIVE_API_KEY = "sk-ott@sk-ott-479819.iam.gserviceaccount.com";
-
 let movies = [];
 let filteredMovies = [];
 let isAdmin = false;
@@ -29,9 +26,9 @@ const closeModalBtn = document.getElementById("close-modal");
 const playerTitle = document.getElementById("player-title");
 const playerMeta = document.getElementById("player-meta");
 const playerDesc = document.getElementById("player-desc");
-const playerVideo = document.getElementById("player-video");
 const playerLoading = document.getElementById("player-loading");
 const playerError = document.getElementById("player-error");
+const playerFrame = document.getElementById("player-frame");
 
 // Admin elements
 const adminToggleBtn = document.getElementById("admin-toggle");
@@ -49,42 +46,31 @@ const adminSourceInput = document.getElementById("admin-source");
 const adminSourcePreview = document.getElementById("admin-source-preview");
 const adminMovieList = document.getElementById("admin-movie-list");
 
-// ========= Helper: extract Drive file ID =========
-function extractDriveFileId(raw) {
+// ========= Helper: normalize PikPak share URL =========
+function normalizePikPakUrl(raw) {
   if (!raw) return "";
+  let url = raw.trim();
 
-  const trimmed = raw.trim();
-
-  // Share URL: /file/d/FILE_ID/view
-  const fileMatch = trimmed.match(/\/file\/d\/([^/]+)\//);
-  if (fileMatch && fileMatch[1]) return fileMatch[1];
-
-  // URL with ?id=FILE_ID
-  const openMatch = trimmed.match(/[?&]id=([^&]+)/);
-  if (openMatch && openMatch[1]) return openMatch[1];
-
-  // If user pasted only the ID, just use it
-  return trimmed;
-}
-
-// ========= Build streaming URL via Google Drive API =========
-function toDriveVideoUrl(raw) {
-  const fileId = extractDriveFileId(raw);
-  if (!fileId) return "";
-
-  // If you forgot to set API key, fall back to uc?export=download
-  if (!DRIVE_API_KEY || DRIVE_API_KEY === "YOUR_GOOGLE_API_KEY_HERE") {
-    return `https://drive.google.com/uc?export=download&id=${fileId}`;
+  // If only code is pasted, you could optionally build full URL here.
+  // For now, if it doesn't start with http, we just prefix https://
+  if (!/^https?:\/\//i.test(url)) {
+    url = "https://" + url;
   }
 
-  // Drive API streaming endpoint
-  return `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${DRIVE_API_KEY}`;
+  return url;
 }
 
-// ====== Source preview in admin (auto from Drive link) ======
+// ========= Build "embed" URL (for now same as share URL) =========
+function toPikPakEmbedUrl(raw) {
+  const url = normalizePikPakUrl(raw);
+  // If PikPak ever gives a special embed URL format, adapt here.
+  return url;
+}
+
+// ====== Source preview in admin ======
 function updateSourcePreview() {
   const raw = adminSourceInput.value.trim();
-  const url = toDriveVideoUrl(raw);
+  const url = toPikPakEmbedUrl(raw);
   if (adminSourcePreview) {
     adminSourcePreview.value = url || "";
   }
@@ -132,12 +118,8 @@ async function loadMovies() {
 
     if (error) {
       console.error("Supabase select error:", error);
-      alert(
-        "Supabase select error: " +
-        (error.message || JSON.stringify(error))
-      );
       movieList.innerHTML =
-        "<p>Could not load movies from Supabase. Check config / policies.</p>";
+        "<p>Could not load movies from Supabase. Check console.</p>";
       return;
     }
 
@@ -148,9 +130,8 @@ async function loadMovies() {
       genre: m.genre || "",
       description: m.description || "",
       thumbnail: m.thumbnail || "",
-      // IMPORTANT: we store whatever is in DB as raw (maybe ID/link),
-      // then convert to Drive API streaming URL here:
-      source: toDriveVideoUrl(m.source || "")
+      rawSource: m.source || "",
+      embedUrl: toPikPakEmbedUrl(m.source || "")
     }));
 
     filteredMovies = movies;
@@ -158,7 +139,6 @@ async function loadMovies() {
     renderAdminMovieList();
   } catch (err) {
     console.error("Unexpected error loading movies:", err);
-    alert("Unexpected error loading movies: " + err.message);
     movieList.innerHTML =
       "<p>Unexpected error loading movies. Check console.</p>";
   }
@@ -313,7 +293,7 @@ reloadBtn.addEventListener("click", () => {
   loadMovies();
 });
 
-// ====== Player modal ======
+// ====== Player modal (iframe) ======
 function showLoading() {
   playerLoading.classList.remove("hidden");
 }
@@ -323,7 +303,7 @@ function hideLoading() {
 }
 
 function showError(msg) {
-  playerError.textContent = msg || "Error playing this video.";
+  playerError.textContent = msg || "Error opening PikPak player.";
   playerError.classList.remove("hidden");
 }
 
@@ -343,22 +323,27 @@ function openPlayer(movie) {
   clearError();
   showLoading();
 
-  playerVideo.poster = movie.thumbnail || "";
-  playerVideo.src = movie.source;
-  playerVideo.currentTime = 0;
+  const embedUrl = movie.embedUrl;
+  if (!embedUrl) {
+    hideLoading();
+    showError(
+      "No valid PikPak link found. Check that the share URL is correct."
+    );
+    return;
+  }
 
-  playerVideo
-    .play()
-    .catch(() => {
-      hideLoading(); // autoplay blocked is not fatal
-    });
+  playerFrame.src = embedUrl;
+
+  // We can’t detect 'loaded' on third-party iframe reliably, so hide loader after delay
+  setTimeout(() => {
+    hideLoading();
+  }, 1500);
 
   playerModal.classList.remove("hidden");
 }
 
 function closePlayer() {
-  playerVideo.pause();
-  playerVideo.src = "";
+  playerFrame.src = "";
   hideLoading();
   clearError();
   playerModal.classList.add("hidden");
@@ -369,21 +354,6 @@ playerModal.addEventListener("click", (e) => {
   if (e.target === playerModal) {
     closePlayer();
   }
-});
-
-// Video events for loading / error UX
-playerVideo.addEventListener("waiting", showLoading);
-playerVideo.addEventListener("loadstart", showLoading);
-playerVideo.addEventListener("canplay", hideLoading);
-playerVideo.addEventListener("playing", hideLoading);
-playerVideo.addEventListener("pause", hideLoading);
-playerVideo.addEventListener("ended", hideLoading);
-
-playerVideo.addEventListener("error", () => {
-  hideLoading();
-  showError(
-    "Unable to load video. Check Drive sharing (Anyone with link – Viewer) and API key."
-  );
 });
 
 // ====== Admin toggle ======
@@ -426,7 +396,7 @@ adminThumbInput.addEventListener("input", () => {
   thumbPreview.src = url || "";
 });
 
-// ====== Save movie to Supabase (we store the RAW link/ID) ======
+// ====== Save movie to Supabase ======
 async function saveMovieToSupabase(entry) {
   if (!supabaseClient) {
     alert("Supabase not initialized – check config.");
@@ -442,8 +412,7 @@ async function saveMovieToSupabase(entry) {
         genre: entry.genre,
         description: entry.description,
         thumbnail: entry.thumbnail,
-        // we store the raw source (ID or share URL) in DB
-        source: entry.rawSource
+        source: entry.rawSource   // store original PikPak link
       }
     ])
     .select()
@@ -478,12 +447,12 @@ adminForm.addEventListener("submit", async (e) => {
   const rawSource = adminSourceInput.value.trim();
 
   if (!title || !rawSource) {
-    window.alert("Title and Google Drive link/File ID are required.");
+    window.alert("Title and PikPak share link are required.");
     return;
   }
 
-  const sourcePreviewUrl = toDriveVideoUrl(rawSource);
-  adminSourcePreview.value = sourcePreviewUrl;
+  const previewUrl = toPikPakEmbedUrl(rawSource);
+  adminSourcePreview.value = previewUrl;
 
   const movieEntry = {
     title,
@@ -491,7 +460,7 @@ adminForm.addEventListener("submit", async (e) => {
     genre: genre || "",
     description,
     thumbnail,
-    rawSource // store raw in DB
+    rawSource
   };
 
   try {
