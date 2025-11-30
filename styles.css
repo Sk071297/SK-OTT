@@ -287,6 +287,66 @@ body {
   font-size: 0.78rem;
 }
 
+/* Admin movie list */
+.admin-movie-list-block {
+  margin-top: 14px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(148, 163, 255, 0.5);
+}
+
+.admin-movie-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+  margin-top: 6px;
+}
+
+.admin-movie-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 255, 0.3);
+  font-size: 0.78rem;
+}
+
+.admin-movie-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-movie-title {
+  font-weight: 600;
+}
+
+.admin-movie-meta {
+  opacity: 0.8;
+  font-size: 0.76rem;
+}
+
+.admin-movie-id {
+  opacity: 0.6;
+  font-size: 0.7rem;
+}
+
+.admin-delete-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: rgba(248, 113, 113, 0.18);
+  color: #fecaca;
+  border: 1px solid rgba(248, 113, 113, 0.7);
+}
+
 /* Movie grid */
 .movie-grid {
   display: grid;

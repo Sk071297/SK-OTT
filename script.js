@@ -218,10 +218,10 @@ function renderAdminMovieList() {
 
 function deleteMovie(id) {
   if (!id) return;
-  const confirmDelete = window.confirm(
-    "Delete this movie from the current list and JSON preview? (You must still update movies.json in GitHub to make it permanent.)"
+  const ok = window.confirm(
+    "Delete this movie from the current list and JSON preview? (You still need to update movies.json in GitHub to make it permanent.)"
   );
-  if (!confirmDelete) return;
+  if (!ok) return;
 
   movies = movies.filter((m) => m.id !== id);
   filteredMovies = movies;
@@ -257,7 +257,7 @@ reloadBtn.addEventListener("click", () => {
   loadMovies();
 });
 
-// ====== Player modal (improved) ======
+// ====== Player modal ======
 function showLoading() {
   playerLoading.classList.remove("hidden");
 }
@@ -371,7 +371,7 @@ adminThumbInput.addEventListener("input", () => {
   thumbPreview.src = url || "";
 });
 
-// ====== Admin form: generate JSON + update in-memory list ======
+// ====== Admin form: add movie ======
 adminForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
