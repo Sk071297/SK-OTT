@@ -176,7 +176,8 @@ function applyFilters() {
       (m.description || "").toLowerCase().includes(searchText);
 
     const matchesGenre =
-      !genreValue || (m.genre || "").toLowerCase() === genreValue.toLowerCase();
+      !genreValue ||
+      (m.genre || "").toLowerCase() === genreValue.toLowerCase();
 
     return matchesSearch && matchesGenre;
   });
@@ -227,7 +228,7 @@ function openPlayer(movie) {
   playerVideo
     .play()
     .catch(() => {
-      // Autoplay blocked is not a real error; we just stop loading
+      // Autoplay blocked is not a real error; just hide loader
       hideLoading();
     });
 

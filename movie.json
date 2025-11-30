@@ -4,8 +4,26 @@
     "title": "My First SK Movie",
     "year": 2025,
     "genre": "Drama",
-    "description": "My first test movie on SK OTT, streamed from Google Drive.",
-    "thumbnail": "https://via.placeholder.com/300x450?text=My+First+SK+Movie",
-    "source": "https://drive.google.com/file/d/YOUR_FILE_ID_HERE/view?usp=sharing"
+    "description": "My first test movie on SK OTT.",
+    "thumbnail": "https://via.placeholder.com/300x450?text=Movie+1",
+    "source": "https://drive.google.com/file/d/FILE_ID_1/view?usp=sharing"
+  },
+  {
+    "id": "sk-movie-2",
+    "title": "Family Trip Vlog",
+    "year": 2024,
+    "genre": "Comedy",
+    "description": "Holiday vlog with family.",
+    "thumbnail": "https://via.placeholder.com/300x450?text=Movie+2",
+    "source": "https://drive.google.com/file/d/FILE_ID_2/view?usp=sharing"
+  },
+  {
+    "id": "sk-movie-3",
+    "title": "Football Highlights",
+    "year": 2023,
+    "genre": "Sports",
+    "description": "Match highlights.",
+    "thumbnail": "https://via.placeholder.com/300x450?text=Movie+3",
+    "source": "https://drive.google.com/file/d/FILE_ID_3/view?usp=sharing"
   }
 ]
