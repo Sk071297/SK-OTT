@@ -127,7 +127,7 @@ async function loadMovies() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error(error);
+      console.error("Supabase select error:", error);
       movieList.innerHTML =
         "<p>Could not load movies from Supabase. Check console.</p>";
       return;
@@ -148,7 +148,7 @@ async function loadMovies() {
     updateAdminFullJson();
     renderAdminMovieList();
   } catch (err) {
-    console.error(err);
+    console.error("Unexpected error loading movies:", err);
     movieList.innerHTML =
       "<p>Unexpected error loading movies. Check console.</p>";
   }
@@ -264,14 +264,14 @@ async function deleteMovie(id) {
       .eq("id", id);
 
     if (error) {
-      console.error(error);
+      console.error("Supabase delete error:", error);
       alert("Failed to delete movie. Check console.");
       return;
     }
 
     await loadMovies();
   } catch (err) {
-    console.error(err);
+    console.error("Unexpected delete error:", err);
     alert("Unexpected error while deleting. Check console.");
   }
 }
@@ -418,7 +418,7 @@ adminThumbInput.addEventListener("input", () => {
   thumbPreview.src = url || "";
 });
 
-// ====== Save movie to Supabase ======
+// ====== Save movie to Supabase (with detailed error) ======
 async function saveMovieToSupabase(entry) {
   const { data, error } = await supabase
     .from("movies")
@@ -435,7 +435,15 @@ async function saveMovieToSupabase(entry) {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error("Supabase insert error:", error);
+    alert(
+      "Supabase insert error: " +
+        (error.message || JSON.stringify(error))
+    );
+    throw error;
+  }
+
   return data;
 }
 
@@ -484,8 +492,8 @@ adminForm.addEventListener("submit", async (e) => {
     await loadMovies();
     window.scrollTo({ top: 0, behavior: "smooth" });
   } catch (err) {
-    console.error(err);
-    alert("Failed to save movie to Supabase. Check console.");
+    console.error("Failed to save movie to Supabase:", err);
+    // alert is already shown inside saveMovieToSupabase
   }
 });
 
