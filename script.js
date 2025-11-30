@@ -6,6 +6,9 @@ let movies = [];
 let filteredMovies = [];
 let isAdmin = false;
 
+// Supabase client from index.html
+const supabase = window.supabase;
+
 // DOM elements
 const lockScreen = document.getElementById("lock-screen");
 const app = document.getElementById("app");
@@ -70,7 +73,7 @@ function toDriveVideoUrl(raw) {
     fileId = openMatch[1];
   }
 
-  // If user pasted only file ID, it stays as is
+  // If user pasted only file ID, keep that
   return `https://drive.google.com/uc?export=download&id=${fileId}`;
 }
 
@@ -109,17 +112,34 @@ accessCodeInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") tryUnlock();
 });
 
-// ====== Load movies from movies.json ======
+// ====== Load movies from Supabase ======
 async function loadMovies() {
+  if (!supabase) {
+    movieList.innerHTML =
+      "<p>Supabase not initialized. Check config in index.html.</p>";
+    return;
+  }
+
   try {
-    const res = await fetch("movies.json?t=" + Date.now()); // bust cache
-    if (!res.ok) {
-      throw new Error("Failed to load movies.json");
+    const { data, error } = await supabase
+      .from("movies")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      movieList.innerHTML =
+        "<p>Could not load movies from Supabase. Check console.</p>";
+      return;
     }
-    const data = await res.json();
 
     movies = (data || []).map((m) => ({
-      ...m,
+      id: m.id,
+      title: m.title || "",
+      year: m.year || null,
+      genre: m.genre || "",
+      description: m.description || "",
+      thumbnail: m.thumbnail || "",
       source: toDriveVideoUrl(m.source || "")
     }));
 
@@ -130,7 +150,7 @@ async function loadMovies() {
   } catch (err) {
     console.error(err);
     movieList.innerHTML =
-      "<p>Could not load movies. Check movies.json.</p>";
+      "<p>Unexpected error loading movies. Check console.</p>";
   }
 }
 
@@ -186,7 +206,7 @@ function renderAdminMovieList() {
 
   if (!movies || movies.length === 0) {
     adminMovieList.innerHTML =
-      "<p class='admin-hint'>No movies loaded yet. Add a movie above or reload from <code>movies.json</code>.</p>";
+      "<p class='admin-hint'>No movies in database yet. Add a movie above.</p>";
     return;
   }
 
@@ -212,7 +232,7 @@ function renderAdminMovieList() {
 
     const idLine = document.createElement("div");
     idLine.className = "admin-movie-id";
-    idLine.textContent = m.id || "";
+    idLine.textContent = `ID: ${m.id || ""}`;
 
     main.appendChild(title);
     main.appendChild(meta);
@@ -230,18 +250,30 @@ function renderAdminMovieList() {
   });
 }
 
-function deleteMovie(id) {
+async function deleteMovie(id) {
   if (!id) return;
   const ok = window.confirm(
-    "Delete this movie from the current list and JSON preview? (You still need to update movies.json in GitHub to make it permanent.)"
+    "Delete this movie from Supabase? This cannot be undone."
   );
   if (!ok) return;
 
-  movies = movies.filter((m) => m.id !== id);
-  filteredMovies = movies;
-  renderMovies(filteredMovies);
-  renderAdminMovieList();
-  updateAdminFullJson();
+  try {
+    const { error } = await supabase
+      .from("movies")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error(error);
+      alert("Failed to delete movie. Check console.");
+      return;
+    }
+
+    await loadMovies();
+  } catch (err) {
+    console.error(err);
+    alert("Unexpected error while deleting. Check console.");
+  }
 }
 
 // ====== Search & filter ======
@@ -374,6 +406,7 @@ adminToggleBtn.addEventListener("click", () => {
 adminGenreSelect.addEventListener("change", () => {
   if (adminGenreSelect.value === "Other") {
     customGenreRow.classList.remove("hidden");
+    adminGenreCustomInput.focus();
   } else {
     customGenreRow.classList.add("hidden");
   }
@@ -385,8 +418,29 @@ adminThumbInput.addEventListener("input", () => {
   thumbPreview.src = url || "";
 });
 
+// ====== Save movie to Supabase ======
+async function saveMovieToSupabase(entry) {
+  const { data, error } = await supabase
+    .from("movies")
+    .insert([
+      {
+        title: entry.title,
+        year: entry.year,
+        genre: entry.genre,
+        description: entry.description,
+        thumbnail: entry.thumbnail,
+        source: entry.source
+      }
+    ])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 // ====== Admin form: add movie ======
-adminForm.addEventListener("submit", (e) => {
+adminForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const title = adminTitleInput.value.trim();
@@ -402,20 +456,19 @@ adminForm.addEventListener("submit", (e) => {
   const rawSource = adminSourceInput.value.trim();
 
   if (!title || !rawSource) {
-    window.alert(
-      "Title and Google Drive link/File ID are required."
-    );
+    window.alert("Title and Google Drive link/File ID are required.");
     return;
   }
 
   const source = toDriveVideoUrl(rawSource);
-  updateSourcePreview(); // keep preview in sync
+  updateSourcePreview();
 
+  // temp id just for JSON preview
   const idBase = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  const id = `${idBase}-${Date.now()}`;
+  const tempId = `${idBase}-${Date.now()}`;
 
   const movieEntry = {
-    id,
+    id: tempId,
     title,
     year: year || null,
     genre: genre || "",
@@ -424,19 +477,19 @@ adminForm.addEventListener("submit", (e) => {
     source
   };
 
-  const jsonBlock = JSON.stringify(movieEntry, null, 2);
-  adminOutput.value = jsonBlock;
+  adminOutput.value = JSON.stringify(movieEntry, null, 2);
 
-  movies.push(movieEntry);
-  filteredMovies = movies;
-  applyFilters();
-  updateAdminFullJson();
-  renderAdminMovieList();
-
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  try {
+    await saveMovieToSupabase(movieEntry);
+    await loadMovies();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (err) {
+    console.error(err);
+    alert("Failed to save movie to Supabase. Check console.");
+  }
 });
 
-// ====== Admin helper: full movies.json preview ======
+// ====== Admin helper: full JSON snapshot ======
 function updateAdminFullJson() {
   if (!Array.isArray(movies) || movies.length === 0) {
     adminOutputFull.value = "[]";
