@@ -59,22 +59,3 @@
   color: #fecaca;
   border: 1px solid rgba(248, 113, 113, 0.7);
 }
-.admin-delete-btn:hover {
-  background: rgba(248, 113, 113, 0.3);
-  border-color: rgba(248, 113, 113, 0.9);
-}
-.admin-delete-btn:active {
-  background: rgba(248, 113, 113, 0.4);
-}
-.admin-delete-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-.admin-delete-btn:disabled:hover {
-  background: rgba(248, 113, 113, 0.18);
-  border-color: rgba(248, 113, 113, 0.7);
-}
-.admin-delete-btn:disabled:active {
-  background: rgba(248, 113, 113, 0.18);
-}
-/* ...keep all your previous CSS from earlier answer... */
