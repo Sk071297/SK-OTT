@@ -55,13 +55,20 @@ function extractDriveFileId(raw) {
 
   // Share URL: /file/d/FILE_ID/...
   const fileMatch = trimmed.match(/\/file\/d\/([^/]+)/);
-  if (fileMatch && fileMatch[1]) return fileMatch[1];
+  if (fileMatch && fileMatch[1]) {
+    console.debug("extractDriveFileId ->", fileMatch[1]);
+    return fileMatch[1];
+  }
 
   // URL with ?id=FILE_ID
   const openMatch = trimmed.match(/[?&]id=([^&]+)/);
-  if (openMatch && openMatch[1]) return openMatch[1];
+  if (openMatch && openMatch[1]) {
+    console.debug("extractDriveFileId ->", openMatch[1]);
+    return openMatch[1];
+  }
 
   // If user pasted only the ID, just use it
+  console.debug("extractDriveFileId -> raw ID:", trimmed);
   return trimmed;
 }
 
@@ -104,9 +111,10 @@ accessCodeInput.addEventListener("keydown", (e) => {
 
 // ====== Load movies from Supabase ======
 async function loadMovies() {
+  console.debug("loadMovies: supabaseClient =", supabaseClient);
   if (!supabaseClient) {
     movieList.innerHTML =
-      "<p>Supabase not initialized. Check URL and anon key in index.html.</p>";
+      "<p>Supabase not initialized. Check URL and anon key in index.html. See console for details.</p>";
     return;
   }
 
@@ -115,6 +123,8 @@ async function loadMovies() {
       .from("movies")
       .select("*")
       .order("created_at", { ascending: false });
+
+    console.debug("Supabase response:", { data, error });
 
     if (error) {
       console.error("Supabase select error:", error);
@@ -324,6 +334,7 @@ function openPlayer(movie) {
   playerDesc.textContent = movie.description || "";
 
   const url = movie.previewUrl;
+  console.debug("openPlayer: movie id=", movie.id, "previewUrl=", url);
   if (!url) {
     hideLoading();
     showError(
@@ -475,6 +486,7 @@ adminForm.addEventListener("submit", async (e) => {
 // ====== Init ======
 document.addEventListener("DOMContentLoaded", () => {
   supabaseClient = window.supabase || null;
+  console.debug("DOMContentLoaded: window.supabase =", window.supabase);
   if (!supabaseClient) {
     console.error("Supabase not found on window. Check index.html config.");
   }
