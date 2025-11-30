@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- Simple password gate (NOT real security) -->
+  <!-- Simple password gate -->
   <div id="lock-screen" class="lock-screen">
     <div class="lock-card">
       <h1>SK 🔐</h1>
@@ -72,8 +72,8 @@
         <h2>Admin – Add / Edit Library</h2>
         <p class="admin-hint">
           1) Upload movie to <strong>PikPak Cloud</strong> →
-          generate a <strong>share link</strong><br />
-          2) Paste the PikPak link here to save in Supabase.
+          generate a <strong>share link</strong>.<br />
+          2) Paste that link here and save to Supabase.
         </p>
 
         <!-- Add movie form -->
@@ -139,7 +139,8 @@
               placeholder="https://... (poster image URL)"
             />
             <small class="hint">
-              Tip: Use https://via.placeholder.com/300x450?text=My+Movie or a direct image URL.
+              Tip: You can use a direct poster URL or
+              https://via.placeholder.com/300x450?text=My+Movie
             </small>
             <div class="thumb-preview-wrapper">
               <div class="thumb-preview-label">Preview:</div>
@@ -156,19 +157,19 @@
               required
             />
             <small class="hint">
-              Use the share URL from PikPak (web or app). The player will open the PikPak web viewer in a secure iframe.
+              Use the share URL from PikPak (web or app). Playback opens in a new tab.
             </small>
           </div>
 
           <div class="form-row">
-            <label for="admin-source-preview">Embed URL (auto)</label>
+            <label for="admin-source-preview">Normalized URL (auto)</label>
             <input
               type="text"
               id="admin-source-preview"
               readonly
             />
             <small class="hint">
-              This is the URL SK uses in the iframe player. Usually same as the share link.
+              This is what SK saves and opens on click.
             </small>
           </div>
 
@@ -192,26 +193,17 @@
     </main>
   </div>
 
-  <!-- Player modal (iframe-based) -->
+  <!-- Info modal (no embed, just "Watch on PikPak" button) -->
   <div id="player-modal" class="modal hidden">
     <div class="modal-content">
       <button id="close-modal" class="close-btn">✕</button>
 
       <div class="modal-layout">
         <div class="player-wrapper">
-          <div id="player-loading" class="player-loading hidden">
-            <div class="spinner"></div>
-            <span>Loading player...</span>
-          </div>
           <div id="player-error" class="player-error hidden"></div>
-
-          <div class="player-embed-wrapper">
-            <iframe
-              id="player-frame"
-              allow="autoplay; encrypted-media"
-              allowfullscreen
-            ></iframe>
-          </div>
+          <button id="open-pikpak-btn" class="open-pikpak-btn">
+            ▶ Watch on PikPak
+          </button>
         </div>
 
         <div class="player-info">
@@ -227,7 +219,7 @@
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-    // ⬇️ REPLACE THESE TWO LINES WITH REAL VALUES FROM Supabase Settings → API
+    // ⬇️ REPLACE THESE WITH YOUR REAL VALUES (Supabase → Settings → API)
     const supabaseUrl = "https://xneiwdmxyakqoalmckug.supabase.co";
     const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhuZWl3ZG14eWFrcW9hbG1ja3VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MTkwNTIsImV4cCI6MjA4MDA5NTA1Mn0.iIjVhdC6dGsPuYe-DjhOyOO0lzUD9IuyEj3I89CfFJ4";
 

@@ -1,15 +1,16 @@
 // ====== Configuration ======
-const ACCESS_CODE = "sk1234";    // viewer code – change this
-const ADMIN_CODE = "skadmin567"; // admin code – change this
+const ACCESS_CODE = "sk1234";    // change this
+const ADMIN_CODE = "skadmin567"; // change this
 
 let movies = [];
 let filteredMovies = [];
 let isAdmin = false;
+let currentMovieUrl = null; // for "Watch on PikPak" button
 
-// Supabase client will be set after DOMContentLoaded
+// Supabase client (set on DOMContentLoaded)
 let supabaseClient = null;
 
-// DOM elements
+// ====== DOM elements ======
 const lockScreen = document.getElementById("lock-screen");
 const app = document.getElementById("app");
 const accessCodeInput = document.getElementById("access-code");
@@ -21,16 +22,16 @@ const genreFilter = document.getElementById("genre-filter");
 const movieList = document.getElementById("movie-list");
 const reloadBtn = document.getElementById("reload-btn");
 
+// Modal
 const playerModal = document.getElementById("player-modal");
 const closeModalBtn = document.getElementById("close-modal");
 const playerTitle = document.getElementById("player-title");
 const playerMeta = document.getElementById("player-meta");
 const playerDesc = document.getElementById("player-desc");
-const playerLoading = document.getElementById("player-loading");
 const playerError = document.getElementById("player-error");
-const playerFrame = document.getElementById("player-frame");
+const openPikPakBtn = document.getElementById("open-pikpak-btn");
 
-// Admin elements
+// Admin
 const adminToggleBtn = document.getElementById("admin-toggle");
 const adminPanel = document.getElementById("admin-panel");
 const adminForm = document.getElementById("admin-form");
@@ -51,8 +52,7 @@ function normalizePikPakUrl(raw) {
   if (!raw) return "";
   let url = raw.trim();
 
-  // If only code is pasted, you could optionally build full URL here.
-  // For now, if it doesn't start with http, we just prefix https://
+  // If someone pastes only "mypikpak.com/s/XXXX" or similar
   if (!/^https?:\/\//i.test(url)) {
     url = "https://" + url;
   }
@@ -60,17 +60,10 @@ function normalizePikPakUrl(raw) {
   return url;
 }
 
-// ========= Build "embed" URL (for now same as share URL) =========
-function toPikPakEmbedUrl(raw) {
-  const url = normalizePikPakUrl(raw);
-  // If PikPak ever gives a special embed URL format, adapt here.
-  return url;
-}
-
 // ====== Source preview in admin ======
 function updateSourcePreview() {
   const raw = adminSourceInput.value.trim();
-  const url = toPikPakEmbedUrl(raw);
+  const url = normalizePikPakUrl(raw);
   if (adminSourcePreview) {
     adminSourcePreview.value = url || "";
   }
@@ -80,7 +73,7 @@ if (adminSourceInput) {
   adminSourceInput.addEventListener("input", updateSourcePreview);
 }
 
-// ====== Password gate ======
+// ====== Lock screen ======
 function tryUnlock() {
   const entered = accessCodeInput.value.trim();
   if (!entered) {
@@ -130,8 +123,7 @@ async function loadMovies() {
       genre: m.genre || "",
       description: m.description || "",
       thumbnail: m.thumbnail || "",
-      rawSource: m.source || "",
-      embedUrl: toPikPakEmbedUrl(m.source || "")
+      pikpakUrl: normalizePikPakUrl(m.source || "")
     }));
 
     filteredMovies = movies;
@@ -144,7 +136,7 @@ async function loadMovies() {
   }
 }
 
-// ====== Render grid ======
+// ====== Render movies grid ======
 function renderMovies(list) {
   if (!list || list.length === 0) {
     movieList.innerHTML = "<p>No movies found.</p>";
@@ -184,6 +176,7 @@ function renderMovies(list) {
     card.appendChild(img);
     card.appendChild(body);
 
+    // open info modal
     card.addEventListener("click", () => openPlayer(movie));
 
     movieList.appendChild(card);
@@ -293,26 +286,20 @@ reloadBtn.addEventListener("click", () => {
   loadMovies();
 });
 
-// ====== Player modal (iframe) ======
-function showLoading() {
-  playerLoading.classList.remove("hidden");
-}
-
-function hideLoading() {
-  playerLoading.classList.add("hidden");
-}
-
-function showError(msg) {
-  playerError.textContent = msg || "Error opening PikPak player.";
-  playerError.classList.remove("hidden");
-}
-
+// ====== Modal / player logic ======
 function clearError() {
   playerError.textContent = "";
   playerError.classList.add("hidden");
 }
 
+function showError(msg) {
+  playerError.textContent = msg || "Error opening PikPak.";
+  playerError.classList.remove("hidden");
+}
+
 function openPlayer(movie) {
+  clearError();
+
   playerTitle.textContent = movie.title || "";
   const metaParts = [];
   if (movie.year) metaParts.push(movie.year);
@@ -320,40 +307,32 @@ function openPlayer(movie) {
   playerMeta.textContent = metaParts.join(" • ");
   playerDesc.textContent = movie.description || "";
 
-  clearError();
-  showLoading();
+  currentMovieUrl = movie.pikpakUrl || null;
 
-  const embedUrl = movie.embedUrl;
-  if (!embedUrl) {
-    hideLoading();
-    showError(
-      "No valid PikPak link found. Check that the share URL is correct."
-    );
-    return;
+  if (!currentMovieUrl) {
+    showError("No PikPak link saved for this movie.");
   }
-
-  playerFrame.src = embedUrl;
-
-  // We can’t detect 'loaded' on third-party iframe reliably, so hide loader after delay
-  setTimeout(() => {
-    hideLoading();
-  }, 1500);
 
   playerModal.classList.remove("hidden");
 }
 
 function closePlayer() {
-  playerFrame.src = "";
-  hideLoading();
+  currentMovieUrl = null;
   clearError();
   playerModal.classList.add("hidden");
 }
 
 closeModalBtn.addEventListener("click", closePlayer);
 playerModal.addEventListener("click", (e) => {
-  if (e.target === playerModal) {
-    closePlayer();
+  if (e.target === playerModal) closePlayer();
+});
+
+openPikPakBtn.addEventListener("click", () => {
+  if (!currentMovieUrl) {
+    showError("No PikPak link available.");
+    return;
   }
+  window.open(currentMovieUrl, "_blank", "noopener,noreferrer");
 });
 
 // ====== Admin toggle ======
@@ -412,7 +391,7 @@ async function saveMovieToSupabase(entry) {
         genre: entry.genre,
         description: entry.description,
         thumbnail: entry.thumbnail,
-        source: entry.rawSource   // store original PikPak link
+        source: entry.pikpakUrl
       }
     ])
     .select()
@@ -430,7 +409,7 @@ async function saveMovieToSupabase(entry) {
   return data;
 }
 
-// ====== Admin form: add movie ======
+// ====== Admin form submit ======
 adminForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -451,8 +430,8 @@ adminForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  const previewUrl = toPikPakEmbedUrl(rawSource);
-  adminSourcePreview.value = previewUrl;
+  const pikpakUrl = normalizePikPakUrl(rawSource);
+  adminSourcePreview.value = pikpakUrl;
 
   const movieEntry = {
     title,
@@ -460,7 +439,7 @@ adminForm.addEventListener("submit", async (e) => {
     genre: genre || "",
     description,
     thumbnail,
-    rawSource
+    pikpakUrl
   };
 
   try {
@@ -475,10 +454,8 @@ adminForm.addEventListener("submit", async (e) => {
 // ====== Init ======
 document.addEventListener("DOMContentLoaded", () => {
   supabaseClient = window.supabase || null;
-
   if (!supabaseClient) {
     console.error("Supabase not found on window. Check index.html config.");
   }
-
   loadMovies();
 });
