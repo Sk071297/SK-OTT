@@ -1,6 +1,6 @@
 // ====== Configuration ======
-const ACCESS_CODE = "SKOTT";    // viewer code – change this
-const ADMIN_CODE = "Adminott12"; // admin code – change this
+const ACCESS_CODE = "sk1234";    // viewer code – change this
+const ADMIN_CODE = "skadmin567"; // admin code – change this
 
 let movies = [];
 let filteredMovies = [];
@@ -36,6 +36,35 @@ const adminThumbInput = document.getElementById("admin-thumb");
 const adminSourceInput = document.getElementById("admin-source");
 const adminOutput = document.getElementById("admin-output");
 
+// ========= Helper: convert Drive URL / ID → direct video URL =========
+function toDriveVideoUrl(raw) {
+  if (!raw) return "";
+
+  const trimmed = raw.trim();
+
+  // Already a direct link
+  if (trimmed.startsWith("https://drive.google.com/uc?")) {
+    return trimmed;
+  }
+
+  let fileId = trimmed;
+
+  // /file/d/FILE_ID/view style
+  const fileMatch = trimmed.match(/\/file\/d\/([^/]+)\//);
+  if (fileMatch && fileMatch[1]) {
+    fileId = fileMatch[1];
+  }
+
+  // open?id=FILE_ID style
+  const openMatch = trimmed.match(/[?&]id=([^&]+)/);
+  if (openMatch && openMatch[1]) {
+    fileId = openMatch[1];
+  }
+
+  // If user pasted only File ID, fileId stays as is
+  return `https://drive.google.com/uc?export=download&id=${fileId}`;
+}
+
 // ====== Password gate (simple, not secure) ======
 function tryUnlock() {
   const entered = accessCodeInput.value.trim();
@@ -68,6 +97,13 @@ async function loadMovies() {
       throw new Error("Failed to load movies.json");
     }
     movies = await res.json();
+
+    // Normalize any raw Drive values
+    movies = movies.map((m) => ({
+      ...m,
+      source: toDriveVideoUrl(m.source || "")
+    }));
+
     filteredMovies = movies;
     renderMovies(filteredMovies);
   } catch (err) {
@@ -152,7 +188,6 @@ function openPlayer(movie) {
   playerMeta.textContent = metaParts.join(" • ");
   playerDesc.textContent = movie.description || "";
 
-  // JioAICloud video URL (public share link)
   playerVideo.src = movie.source;
   playerVideo.currentTime = 0;
   playerVideo
@@ -189,7 +224,6 @@ adminToggleBtn.addEventListener("click", () => {
       window.alert("Wrong admin code.");
     }
   } else {
-    // toggle visibility
     if (adminPanel.classList.contains("hidden")) {
       adminPanel.classList.remove("hidden");
       adminToggleBtn.textContent = "Admin (ON)";
@@ -211,14 +245,15 @@ adminForm.addEventListener("submit", (e) => {
   const genre = adminGenreInput.value.trim();
   const description = adminDescInput.value.trim();
   const thumbnail = adminThumbInput.value.trim();
-  const source = adminSourceInput.value.trim();
+  const rawSource = adminSourceInput.value.trim();
 
-  if (!title || !source) {
-    window.alert("Title and JioAICloud Video URL are required.");
+  if (!title || !rawSource) {
+    window.alert("Title and Google Drive link/File ID are required.");
     return;
   }
 
-  // simple id generator
+  const source = toDriveVideoUrl(rawSource);
+
   const idBase = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const id = `${idBase}-${Date.now()}`;
 
@@ -229,14 +264,12 @@ adminForm.addEventListener("submit", (e) => {
     genre: genre || "",
     description,
     thumbnail,
-    source,
+    source
   };
 
-  // pretty JSON block for movies.json
   const jsonBlock = JSON.stringify(movieEntry, null, 2);
   adminOutput.value = jsonBlock;
 
-  // add to in-memory list so you see it instantly
   movies.push(movieEntry);
   applyFilters();
 
