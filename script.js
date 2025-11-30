@@ -3,7 +3,7 @@ const ACCESS_CODE = "sk1234";    // viewer code – change this
 const ADMIN_CODE = "skadmin567"; // admin code – change this
 
 // ⬇️ PASTE YOUR GOOGLE DRIVE API KEY HERE
-const DRIVE_API_KEY = "YOUR_GOOGLE_API_KEY_HERE";
+const DRIVE_API_KEY = "sk-ott@gen-lang-client-0397418352.iam.gserviceaccount.com";
 
 let movies = [];
 let filteredMovies = [];
